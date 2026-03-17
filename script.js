@@ -6,11 +6,43 @@ const ctx = fireworksCanvas.getContext("2d");
 const particles = [];
 const flashes = [];
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-const MAX_PARTICLES = 820;
+const lowPowerDevice =
+  (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
+  (navigator.deviceMemory && navigator.deviceMemory <= 4);
+const FIREWORKS_CONFIG = lowPowerDevice
+  ? {
+      maxParticles: 240,
+      burstCount: 26,
+      flashLife: 10,
+      flashRadiusMin: 16,
+      flashRadiusMax: 28,
+      flashBlur: 14,
+      particleBlur: 8,
+      burstInterval: 1500,
+      secondBurstChance: 0.12,
+      targetFps: 30,
+      trailFade: 0.32,
+      finaleBursts: 2
+    }
+  : {
+      maxParticles: 440,
+      burstCount: 40,
+      flashLife: 12,
+      flashRadiusMin: 18,
+      flashRadiusMax: 32,
+      flashBlur: 18,
+      particleBlur: 10,
+      burstInterval: 1200,
+      secondBurstChance: 0.2,
+      targetFps: 45,
+      trailFade: 0.26,
+      finaleBursts: 3
+    };
 let dpr = 1;
+let lastFrameTime = 0;
 
 function resizeCanvas() {
-  dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+  dpr = Math.min(window.devicePixelRatio || 1, lowPowerDevice ? 1 : 1.15);
   fireworksCanvas.width = Math.floor(window.innerWidth * dpr);
   fireworksCanvas.height = Math.floor(window.innerHeight * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -21,7 +53,7 @@ function random(min, max) {
 }
 
 function launchFirework() {
-  if (particles.length > MAX_PARTICLES) {
+  if (particles.length > FIREWORKS_CONFIG.maxParticles) {
     return;
   }
 
@@ -30,22 +62,22 @@ function launchFirework() {
   const x = random(width * 0.12, width * 0.88);
   const y = random(height * 0.08, height * 0.4);
   const palette = ["#ffe7af", "#ffd7b6", "#ffc1b1", "#d9cbff", "#b8ebff"];
-  const count = 72;
+  const count = FIREWORKS_CONFIG.burstCount;
   const burstColor = palette[Math.floor(random(0, palette.length))];
 
   flashes.push({
     x,
     y,
-    life: 16,
-    maxLife: 16,
-    radius: random(24, 44),
+    life: FIREWORKS_CONFIG.flashLife,
+    maxLife: FIREWORKS_CONFIG.flashLife,
+    radius: random(FIREWORKS_CONFIG.flashRadiusMin, FIREWORKS_CONFIG.flashRadiusMax),
     color: burstColor
   });
 
   for (let i = 0; i < count; i += 1) {
     const angle = (Math.PI * 2 * i) / count;
-    const speed = random(1.9, 6.2);
-    const life = random(62, 112);
+    const speed = random(1.7, 4.6);
+    const life = random(50, 88);
     particles.push({
       x,
       y,
@@ -53,18 +85,29 @@ function launchFirework() {
       vy: Math.sin(angle) * speed * random(0.7, 1.2),
       life,
       maxLife: life,
-      size: random(1.8, 3.9),
+      size: random(1.4, 2.8),
       color: burstColor
     });
   }
 }
 
-function updateFireworks() {
+function updateFireworks(now = 0) {
+  requestAnimationFrame(updateFireworks);
+  if (document.hidden) {
+    return;
+  }
+
+  const frameDuration = 1000 / FIREWORKS_CONFIG.targetFps;
+  if (now - lastFrameTime < frameDuration) {
+    return;
+  }
+  lastFrameTime = now;
+
   const width = fireworksCanvas.width / dpr;
   const height = fireworksCanvas.height / dpr;
   // Fade slightly instead of clear for trail effect.
   ctx.globalCompositeOperation = "source-over";
-  ctx.fillStyle = "rgba(0, 0, 0, 0.22)";
+  ctx.fillStyle = `rgba(0, 0, 0, ${FIREWORKS_CONFIG.trailFade})`;
   ctx.fillRect(0, 0, width, height);
   ctx.globalCompositeOperation = "lighter";
 
@@ -80,7 +123,7 @@ function updateFireworks() {
     ctx.beginPath();
     ctx.fillStyle = `${flash.color}${Math.floor(alpha * 165).toString(16).padStart(2, "0")}`;
     ctx.shadowColor = flash.color;
-    ctx.shadowBlur = 34;
+    ctx.shadowBlur = FIREWORKS_CONFIG.flashBlur;
     ctx.arc(flash.x, flash.y, flash.radius * (1.05 - alpha * 0.35), 0, Math.PI * 2);
     ctx.fill();
   }
@@ -102,12 +145,10 @@ function updateFireworks() {
     ctx.beginPath();
     ctx.fillStyle = `${p.color}${Math.floor(alpha * 255).toString(16).padStart(2, "0")}`;
     ctx.shadowColor = p.color;
-    ctx.shadowBlur = 22;
+    ctx.shadowBlur = FIREWORKS_CONFIG.particleBlur;
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
     ctx.fill();
   }
-
-  requestAnimationFrame(updateFireworks);
 }
 
 function openSurprise() {
@@ -115,11 +156,10 @@ function openSurprise() {
   surpriseLayer.setAttribute("aria-hidden", "false");
 
   if (!reducedMotion) {
-    // Grand finale burst when surprise opens.
-    for (let i = 0; i < 4; i += 1) {
+    for (let i = 0; i < FIREWORKS_CONFIG.finaleBursts; i += 1) {
       setTimeout(() => {
         launchFirework();
-      }, i * 140);
+      }, i * 180);
     }
   }
 }
@@ -151,9 +191,9 @@ if (!reducedMotion) {
   launchFirework();
   setInterval(() => {
     launchFirework();
-    if (Math.random() > 0.4) {
+    if (Math.random() < FIREWORKS_CONFIG.secondBurstChance) {
       launchFirework();
     }
-  }, 850);
+  }, FIREWORKS_CONFIG.burstInterval);
   updateFireworks();
 }
