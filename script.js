@@ -4,45 +4,32 @@ const surpriseLayer = document.getElementById("surpriseLayer");
 const fireworksCanvas = document.getElementById("fireworksCanvas");
 const ctx = fireworksCanvas.getContext("2d");
 const particles = [];
-const flashes = [];
 const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 const lowPowerDevice =
   (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) ||
   (navigator.deviceMemory && navigator.deviceMemory <= 4);
 const FIREWORKS_CONFIG = lowPowerDevice
   ? {
-      maxParticles: 240,
-      burstCount: 26,
-      flashLife: 10,
-      flashRadiusMin: 16,
-      flashRadiusMax: 28,
-      flashBlur: 14,
-      particleBlur: 8,
-      burstInterval: 1500,
-      secondBurstChance: 0.12,
-      targetFps: 30,
-      trailFade: 0.32,
-      finaleBursts: 2
+      maxParticles: 120,
+      burstCount: 14,
+      burstInterval: 1700,
+      secondBurstChance: 0,
+      targetFps: 20,
+      finaleBursts: 1
     }
   : {
-      maxParticles: 440,
-      burstCount: 40,
-      flashLife: 12,
-      flashRadiusMin: 18,
-      flashRadiusMax: 32,
-      flashBlur: 18,
-      particleBlur: 10,
-      burstInterval: 1200,
-      secondBurstChance: 0.2,
-      targetFps: 45,
-      trailFade: 0.26,
-      finaleBursts: 3
+      maxParticles: 200,
+      burstCount: 22,
+      burstInterval: 1400,
+      secondBurstChance: 0.08,
+      targetFps: 24,
+      finaleBursts: 2
     };
 let dpr = 1;
 let lastFrameTime = 0;
 
 function resizeCanvas() {
-  dpr = Math.min(window.devicePixelRatio || 1, lowPowerDevice ? 1 : 1.15);
+  dpr = 1;
   fireworksCanvas.width = Math.floor(window.innerWidth * dpr);
   fireworksCanvas.height = Math.floor(window.innerHeight * dpr);
   ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -65,19 +52,10 @@ function launchFirework() {
   const count = FIREWORKS_CONFIG.burstCount;
   const burstColor = palette[Math.floor(random(0, palette.length))];
 
-  flashes.push({
-    x,
-    y,
-    life: FIREWORKS_CONFIG.flashLife,
-    maxLife: FIREWORKS_CONFIG.flashLife,
-    radius: random(FIREWORKS_CONFIG.flashRadiusMin, FIREWORKS_CONFIG.flashRadiusMax),
-    color: burstColor
-  });
-
   for (let i = 0; i < count; i += 1) {
     const angle = (Math.PI * 2 * i) / count;
-    const speed = random(1.7, 4.6);
-    const life = random(50, 88);
+    const speed = random(1.4, 3.4);
+    const life = random(36, 62);
     particles.push({
       x,
       y,
@@ -85,7 +63,7 @@ function launchFirework() {
       vy: Math.sin(angle) * speed * random(0.7, 1.2),
       life,
       maxLife: life,
-      size: random(1.4, 2.8),
+      size: random(1.2, 2.2),
       color: burstColor
     });
   }
@@ -105,28 +83,8 @@ function updateFireworks(now = 0) {
 
   const width = fireworksCanvas.width / dpr;
   const height = fireworksCanvas.height / dpr;
-  // Fade slightly instead of clear for trail effect.
+  ctx.clearRect(0, 0, width, height);
   ctx.globalCompositeOperation = "source-over";
-  ctx.fillStyle = `rgba(0, 0, 0, ${FIREWORKS_CONFIG.trailFade})`;
-  ctx.fillRect(0, 0, width, height);
-  ctx.globalCompositeOperation = "lighter";
-
-  for (let i = flashes.length - 1; i >= 0; i -= 1) {
-    const flash = flashes[i];
-    flash.life -= 1;
-    if (flash.life <= 0) {
-      flashes.splice(i, 1);
-      continue;
-    }
-
-    const alpha = flash.life / flash.maxLife;
-    ctx.beginPath();
-    ctx.fillStyle = `${flash.color}${Math.floor(alpha * 165).toString(16).padStart(2, "0")}`;
-    ctx.shadowColor = flash.color;
-    ctx.shadowBlur = FIREWORKS_CONFIG.flashBlur;
-    ctx.arc(flash.x, flash.y, flash.radius * (1.05 - alpha * 0.35), 0, Math.PI * 2);
-    ctx.fill();
-  }
 
   for (let i = particles.length - 1; i >= 0; i -= 1) {
     const p = particles[i];
@@ -143,9 +101,7 @@ function updateFireworks(now = 0) {
 
     const alpha = p.life / p.maxLife;
     ctx.beginPath();
-    ctx.fillStyle = `${p.color}${Math.floor(alpha * 255).toString(16).padStart(2, "0")}`;
-    ctx.shadowColor = p.color;
-    ctx.shadowBlur = FIREWORKS_CONFIG.particleBlur;
+    ctx.fillStyle = `${p.color}${Math.floor(alpha * 220).toString(16).padStart(2, "0")}`;
     ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
     ctx.fill();
   }
