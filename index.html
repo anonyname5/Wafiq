@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salam Aidilfitri</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Great+Vibes&family=Manrope:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <canvas id="fireworksCanvas" aria-hidden="true"></canvas>
+  <div class="bg-grain" aria-hidden="true"></div>
+  <div class="ambient ambient-left" aria-hidden="true"></div>
+  <div class="ambient ambient-right" aria-hidden="true"></div>
+
+  <main class="page">
+    <section class="hero-card">
+      <p class="kicker">Selamat Hari Raya Aidilfitri</p>
+      <h1>Maaf Zahir &amp; Batin</h1>
+      <p class="lead">
+        Di hari yang mulia ini, semoga setiap langkah kita dipenuhi keberkatan,
+        hati yang lapang, dan kasih sayang yang tak putus antara keluarga serta sahabat.
+      </p>
+
+      <div class="divider" aria-hidden="true"></div>
+
+      <p class="wish">
+        Semoga Raya kali ini membawa seribu senyuman, rezeki yang luas,
+        serta kenangan yang indah untuk dikenang sepanjang masa.
+      </p>
+
+      <button class="surprise-btn" id="revealButton" type="button">
+        Tekan sini Woii
+      </button>
+    </section>
+  </main>
+
+  <div class="surprise-layer" id="surpriseLayer" aria-hidden="true">
+    <div class="surprise-content">
+      <button class="close-btn" id="closeButton" aria-label="Tutup paparan kejutan">×</button>
+      <p class="surprise-kicker">Khas Buatmu</p>
+      <h2>Salam Penuh Keikhlasan</h2>
+      <p class="surprise-text">
+        Terima kasih untuk setiap doa, sokongan, dan tawa.
+        Moga silaturahim kita kekal erat, bukan hanya di pagi raya,
+        tetapi sepanjang tahun.
+      </p>
+      <p class="surprise-text surprise-signature">Ikhlas daripada Wafiq</p>
+      <figure class="portrait-frame">
+        <img src="photo_2026-03-17_16-40-39.jpg" alt="Potret istimewa ucapan hari raya">
+      </figure>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
